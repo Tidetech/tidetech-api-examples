@@ -63,10 +63,10 @@ def get_point(server, dataset, locations, out_file=None):
         "locations": json.dumps(locations)
     }
 
-    response = requests.post(url, headers=HEADERS, data=parameters)
+    response = requests.get(url, headers=HEADERS, params=parameters)
+    # Or do a POST Request. POST is required for large numbers of points.
+    # response = requests.post(url, headers=HEADERS, data=parameters)
 
-    # Or do a GET Request. POST is required for large numbers of points.
-    # response = requests.get(url, headers=HEADERS, params=parameters)
     result = response.json()
 
     # Write it to a file, if required
@@ -84,11 +84,10 @@ def get_multipoints(server, datasets, locations, out_file=None):
         "locations": json.dumps(locations),
         "name": datasets
     }
+    response = requests.get(url, headers=HEADERS, params=parameters)
+    # Or do a POST Request. POST is required for large numbers of points.
+    # response = requests.post(url, headers=HEADERS, data=parameters, params={'name': datasets})
 
-    response = requests.post(url, headers=HEADERS, data=parameters, params={'name': datasets})
-
-    # Or do a GET Request. POST is required for large numbers of points.
-    # response = requests.get(url, headers=HEADERS, params=parameters)
     result = response.json()
 
     # Write it to a file, if required
