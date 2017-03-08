@@ -29,6 +29,10 @@ area_url = "{}/v1/data/{}/area/"
 multipoint_url = "{}/v1/data/points/"
 
 
+def print_json(item):
+    print(json.dumps(item, indent=4, separators=(',', ': ')))
+
+
 # Get metadata for a single dataset.
 def get_metadata(server, dataset, display=True):
     url = meta_url.format(server, dataset)
@@ -36,7 +40,7 @@ def get_metadata(server, dataset, display=True):
     file_info = response.json()
 
     if display:
-        print(json.dumps(file_info, indent=4, separators=(',', ': ')))
+        print_json(file_info)
     return file_info
 
 
@@ -63,17 +67,22 @@ def get_point(server, dataset, locations, out_file=None):
         "locations": json.dumps(locations)
     }
 
-    response = requests.get(url, headers=HEADERS, params=parameters)
+    # response = requests.get(url, headers=HEADERS, params=parameters)
     # Or do a POST Request. POST is required for large numbers of points.
-    # response = requests.post(url, headers=HEADERS, data=parameters)
+    response = requests.post(url, headers=HEADERS, json=parameters)
 
     result = response.json()
 
-    # Write it to a file, if required
-    if out_file:
-        with open(out_file, 'w') as outfile:
-            json.dump(result, outfile)
-    return result
+    # Write it to a file, if required, or print it, if not
+    if response.status_code == 404 or response.status_code == 400:
+        print("Area request failed... Reason follows.")
+        print(response.text)
+    else:
+        if out_file:
+            with open(out_file, 'w') as outfile:
+                json.dump(result, outfile)
+        else:
+            print_json(result)
 
 
 # Get data for one or more points for one or more datasets
@@ -86,15 +95,20 @@ def get_multipoints(server, datasets, locations, out_file=None):
     }
     response = requests.get(url, headers=HEADERS, params=parameters)
     # Or do a POST Request. POST is required for large numbers of points.
-    # response = requests.post(url, headers=HEADERS, data=parameters, params={'name': datasets})
+    # response = requests.post(url, headers=HEADERS, json=parameters, params={'name': datasets})
 
     result = response.json()
 
-    # Write it to a file, if required
-    if out_file:
-        with open(out_file, 'w') as outfile:
-            json.dump(result, outfile)
-    return result
+    # Write it to a file, if required, or print it, if not
+    if response.status_code == 404 or response.status_code == 400:
+            print("Area request failed... Reason follows.")
+            print(response.text)
+    else:
+        if out_file:
+            with open(out_file, 'w') as outfile:
+                json.dump(result, outfile)
+        else:
+            print_json(result)
 
 
 def get_example_metadata():
@@ -163,7 +177,7 @@ def get_example_point():
             }
         ]
     }
-    get_point(SERVER, dataset, locations, out_file='/tmp/test.json')
+    get_point(SERVER, dataset, locations, out_file='/tmp/test_waves.json')
 
 
 # An example multi-dataset point, used in testing
@@ -193,7 +207,7 @@ def get_example_multipoints():
             }
         ]
     }
-    get_multipoints(SERVER, datasets, locations, out_file='/tmp/test2.json')
+    get_multipoints(SERVER, datasets, locations, out_file='/tmp/test_all.json')
 
 
 # Run the examples here.
