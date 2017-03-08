@@ -7,16 +7,16 @@ import sys
 import requests
 
 # Configuration of server and API Key
-SERVER = 'https://api.stage.tidetech.xyz'     # Staging
-# SERVER = 'http://api.tidetech.org'          # Production
-API_KEY = os.environ.get('TIDETECH_API_KEY')  # Change this to your API key
+SERVER = 'https://api.tidetech.org'
+# Change this to your API key
+API_KEY = os.environ.get('TIDETECH_API_KEY')
 
 if not API_KEY:
     print("Please set TIDETCH_API_KEY environment variable, or change it in this script. Terminating.")
     sys.exit()
 
-HEADERS = {'Authentication': 'Token ' + API_KEY}
 # Note that the API Key can be passed in as a query parameter with api_key=API_KEY
+HEADERS = {'Authentication': 'Token ' + API_KEY}
 
 # The URLs of our Data API, including:
 # Meta - get information about a dataset
