@@ -216,7 +216,7 @@ def run_examples():
     get_example_area()
     # ncdump -h /tmp/test_waves.nc
     get_example_point()
-    # ogrinfo -al /tmp/test_currents.json
+    # ogrinfo -al /tmp/test_waves.json
     get_example_multipoints()
     # ogrinfo -al /tmp/test_all.json
 
