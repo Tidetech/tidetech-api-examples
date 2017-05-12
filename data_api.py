@@ -3,11 +3,15 @@
 import json
 import os
 import sys
+import tempfile
 
 import requests
 
+from tidetech_methods import print_json, save_file
+
 # Configuration of server and API Key
 SERVER = 'https://api.tidetech.org'
+
 # Change this to your API key
 API_KEY = os.environ.get('TIDETECH_API_KEY')
 
@@ -21,16 +25,15 @@ HEADERS = {'Authentication': 'Token ' + API_KEY}
 # The URLs of our Data API, including:
 # Meta - get information about a dataset
 meta_url = "{}/v1/data/{}/"
+
 # Get data at one or more points (GET or POST)
 point_url = "{}/v1/data/{}/point/"
+
 # Get data for an area
 area_url = "{}/v1/data/{}/area/"
+
 # Multi-point allows requesting information from multiple datasets at once
 multipoint_url = "{}/v1/data/points/"
-
-
-def print_json(item):
-    print(json.dumps(item, indent=4, separators=(',', ': ')))
 
 
 # Get metadata for a single dataset.
@@ -49,14 +52,7 @@ def get_area(server, dataset, parameters, out_file):
     url = area_url.format(server, dataset)
     response = requests.get(url, headers=HEADERS, params=parameters)
 
-    if response.status_code == 404 or response.status_code == 400:
-        print("Area request failed... Reason follows.")
-        print(response.text)
-    else:
-        with open(out_file, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
+    save_file(response, out_file)
 
 
 # Get data for one or more points, for a single dataset
@@ -74,7 +70,7 @@ def get_point(server, dataset, locations, out_file=None):
     result = response.json()
 
     # Write it to a file, if required, or print it, if not
-    if response.status_code == 404 or response.status_code == 400:
+    if response.status_code != 200:
         print("Area request failed... Reason follows.")
         print(response.text)
     else:
@@ -147,7 +143,10 @@ def get_example_area():
         "end_datetime": end_date,
         "filename": "ThisIsATest"
     }
-    get_area(SERVER, dataset, parameters, '/tmp/test_waves.nc')
+
+    out_file = os.path.join(tempfile.mkdtemp(), 'test_waves.nc')
+    print("Saving file to {}".format(out_file))
+    get_area(SERVER, dataset, parameters, out_file)
 
 
 # An example point, used in testing
@@ -177,7 +176,10 @@ def get_example_point():
             }
         ]
     }
-    get_point(SERVER, dataset, locations, out_file='/tmp/test_waves.json')
+
+    out_file = os.path.join(tempfile.mkdtemp(), 'test_currents.json')
+    print("Saving file to {}".format(out_file))
+    get_point(SERVER, dataset, locations, out_file=out_file)
 
 
 # An example multi-dataset point, used in testing
@@ -207,18 +209,18 @@ def get_example_multipoints():
             }
         ]
     }
-    get_multipoints(SERVER, datasets, locations, out_file='/tmp/test_all.json')
+
+    out_file = os.path.join(tempfile.mkdtemp(), 'test_all.json')
+    print("Saving file to {}".format(out_file))
+    get_multipoints(SERVER, datasets, locations, out_file=out_file)
 
 
 # Run the examples here.
 def run_examples():
     get_example_metadata()
     get_example_area()
-    # ncdump -h /tmp/test_waves.nc
     get_example_point()
-    # ogrinfo -al /tmp/test_waves.json
     get_example_multipoints()
-    # ogrinfo -al /tmp/test_all.json
 
 
 if __name__ == '__main__':
